@@ -2,16 +2,55 @@
 import { createCourse } from "@/actions/courses";
 import Button from "@/components/Button";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  getFirestore,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  collection,
+} from "firebase/firestore";
+import { toast } from "react-toastify";
+import { User, getAuth } from "firebase/auth";
 
-const AddCourse = () => {
+const AddCourse = ({ userID }: { userID: string | undefined }) => {
   //
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    setUser(currentUser);
+  }, []);
+
   const [form, setForm] = useState({
     title: "",
     modules: "",
   });
 
   //
+
+  async function AddCourse() {
+    //
+    const db = getFirestore();
+
+    try {
+      const course = await addDoc(collection(db, "courses"), {
+        title: form.title,
+        modules: form.modules,
+        user: user?.uid,
+      });
+
+      toast.success("Course added successfully");
+
+      //
+    } catch (error) {
+      console.log("ERROR", error);
+      toast.error("Error adding course");
+    }
+  }
 
   return (
     <div className="my-10 w-full  max-w-xl mx-auto">
@@ -37,10 +76,7 @@ const AddCourse = () => {
           }
           className="border border-gray-400 p-2 w-full bg-transparent mb-4"
         />
-        <Button
-          title="Add Course"
-          onClick={() => createCourse(form.title, form.modules)}
-        />
+        <Button title="Add Course" onClick={AddCourse} />
       </div>
     </div>
   );

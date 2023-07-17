@@ -5,12 +5,22 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/Button";
 import { createUser, loginUser } from "@/actions/user";
 import { toast } from "react-toastify";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
 
 const AuthForm = () => {
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
+
+  const auth = getAuth();
 
   const [loading, setLoading] = useState(false);
 
@@ -20,38 +30,49 @@ const AuthForm = () => {
     if (!form.email || !form.password) {
       return;
     } else {
-      try {
-        setLoading(true);
-        await createUser(form.email, form.password);
-        setLoading(false);
-        toast.success("User created successfully");
-      } catch (error) {
-        toast.error("Error creating user");
-        setLoading(false);
-      }
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      console.log("SING UP USER", user);
     }
   };
+
   const signIn = async () => {
     if (!form.email || !form.password) {
       return;
     } else {
-      try {
-        setLoading(true);
-        await loginUser(form.email, form.password);
-        setLoading(false);
-        toast.success("User logged in successfully");
-      } catch (error) {
-        console.log(error);
-        toast.error("Error while logging in");
-        setLoading(false);
-      }
+      const { user } = await signInWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      console.log("SING IN USER", user);
     }
   };
+
+  const googleAuth = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const { user } = await signInWithPopup(auth, provider);
+      console.log("USER", user);
+    } catch (error) {
+      toast.error("Something went wrong, please try again");
+    }
+  };
+
+  async function resetPassword() {
+    await sendPasswordResetEmail(auth, form.email);
+  }
 
   return (
     <div className="mx-auto py-10 w-full max-w-md">
       <div className="bg-gray-900 px-3 py-10 rounded-2xl">
-        <h3 className="text-center text-3xl font-bold mb-4">Please Login</h3>
+        <h3 className="text-center text-3xl font-bold mb-5">Please Login</h3>
+        <button onClick={googleAuth} className="btn btn-primary mb-10 w-full">
+          Sign In With Google
+        </button>
 
         <input
           type="text"
@@ -82,6 +103,10 @@ const AuthForm = () => {
         <Button title="Sign In" onClick={() => signIn()} loading={loading} />
         <br />
         <Button title="Sign Up" onClick={() => signUp()} loading={loading} />
+        <br />
+        <button className="btn btn-secondary w-full" onClick={resetPassword}>
+          Reset Password
+        </button>
       </div>
     </div>
   );
