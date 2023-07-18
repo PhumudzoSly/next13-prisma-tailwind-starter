@@ -1,17 +1,8 @@
 "use client";
-import { createCourse } from "@/actions/courses";
 import Button from "@/components/Button";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import {
-  getFirestore,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  collection,
-} from "firebase/firestore";
+import { getFirestore, addDoc, collection } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { User, getAuth } from "firebase/auth";
 
@@ -22,6 +13,7 @@ const AddCourse = ({ userID }: { userID: string | undefined }) => {
   useEffect(() => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
+    console.log("USER", user);
     setUser(currentUser);
   }, []);
 
@@ -35,12 +27,17 @@ const AddCourse = ({ userID }: { userID: string | undefined }) => {
   async function AddCourse() {
     //
     const db = getFirestore();
+    if (!user) {
+      toast.error("USer not found");
+      return;
+      //
+    }
 
     try {
       const course = await addDoc(collection(db, "courses"), {
         title: form.title,
         modules: form.modules,
-        user: user?.uid,
+        user: "Bqg2gRgcudYEtwuBwYvKVzRvXmu1",
       });
 
       toast.success("Course added successfully");
@@ -55,6 +52,7 @@ const AddCourse = ({ userID }: { userID: string | undefined }) => {
   return (
     <div className="my-10 w-full  max-w-xl mx-auto">
       <Link href="/courses">Go Back</Link>
+
       <div className="w-full flex flex-col gap-5 max-w-xl mx-auto bg-gray-700 text-white my-4 p-5">
         <input
           value={form.title}

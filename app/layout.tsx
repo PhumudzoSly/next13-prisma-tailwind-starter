@@ -7,6 +7,8 @@ import Provider from "@/components/Provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const revalidate = 0;
+
 export default function RootLayout({
   children,
 }: {

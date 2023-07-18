@@ -1,47 +1,89 @@
-import { getUser } from "@/actions/user";
-import Button from "@/components/Button";
-import LogoutButton from "@/components/LogoutButton";
-import { prismaClient } from "@/prisma/prisma";
-import { cookies } from "next/headers";
-import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+"use client";
 
-const CoursesPage = async () => {
+import Card from "@/components/Card";
+import { User, getAuth } from "firebase/auth";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+} from "firebase/firestore";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+
+export const revalidate = 0;
+
+const CoursesPage = () => {
   //
-  const id = cookies().get("userID")?.value;
-  const user = await getUser(id);
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [courses, setCourses] = useState<any>([]);
 
-  const courses = await prismaClient.course.findMany({
-    where: {
-      userID: id,
-    },
-  });
+  useEffect(() => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    setUser(currentUser);
+  }, []);
+
+  useEffect(() => {
+    async function getCourses() {
+      // if (!user) return;
+      const db = getFirestore();
+
+      const q = query(
+        collection(db, "courses"),
+        where("user", "==", "Bqg2gRgcudYEtwuBwYvKVzRvXmu1")
+      );
+
+      const snapshot = await getDocs(q);
+
+      let data: any = [];
+
+      snapshot.forEach((doc) => {
+        data.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+
+      setCourses(data);
+    }
+
+    getCourses();
+  }, [user]);
+
+  async function deleteCourse(id: string) {
+    try {
+      const db = getFirestore();
+
+      await deleteDoc(doc(db, "courses", id));
+      const newCourses = courses.filter((course: any) => course.id !== id);
+      setCourses(newCourses);
+    } catch (error) {
+      toast.error("Soemthing went wrong");
+    }
+  }
 
   return (
-    <div className="w-full mx-auto max-w-7xl p-4">
-      <div className="flex gap-5 justify-between items-center mb-5">
-        <h1>My Courses</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/courses/new" className="px-14 py-3 bg-blue-600">
-            Create Course
-          </Link>
-          <LogoutButton />
-        </div>
-      </div>
-      <ul>
-        {courses.map((course) => {
-          return (
-            <li
-              key={course.id}
-              className="px-5 py-2 bg-gray-800 border border-gray-700"
+    <div className="p-10 ">
+      {courses.map((course: any) => {
+        return (
+          <Card key={course.title}>
+            <h1>{course?.title}</h1>
+            <h3>{course?.modules} Modules</h3>
+            <button
+              onClick={() => deleteCourse(course.id)}
+              className="btn btn-error"
             >
-              <h1>{course.title}</h1>
-              <h3>{course.modules} Modules</h3>
-            </li>
-          );
-        })}
-      </ul>
+              Delete
+            </button>
+          </Card>
+        );
+      })}
     </div>
   );
 };

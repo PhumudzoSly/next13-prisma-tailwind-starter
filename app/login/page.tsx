@@ -68,7 +68,7 @@ const AuthForm = () => {
   return (
     <div className="mx-auto py-10 w-full max-w-md">
       <div className="bg-gray-900 px-3 py-10 rounded-2xl">
-        <h3 className="text-center text-3xl font-bold mb-5">Please Login</h3>
+        <h3 className="text-center text-3xl font-bold mb-5">Hello John</h3>
         <button onClick={googleAuth} className="btn btn-primary mb-10 w-full">
           Sign In With Google
         </button>

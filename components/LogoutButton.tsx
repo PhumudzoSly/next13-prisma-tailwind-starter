@@ -1,10 +1,11 @@
 "use client";
-import { logOut } from "@/actions/user";
+import { getAuth, signOut } from "firebase/auth";
 import React from "react";
 
 const LogoutButton = () => {
+  const auth = getAuth();
   return (
-    <button onClick={() => logOut()} className="bg-red-500 px-5 py-3">
+    <button onClick={() => signOut(auth)} className="bg-red-500 px-5 py-3">
       Sign Out
     </button>
   );
